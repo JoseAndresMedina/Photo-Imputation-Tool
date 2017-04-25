@@ -135,7 +135,7 @@ def tear(im, pix):
             while True:
                 nextMove = randint(1, 5)
 
-                if start == 1:
+                if start == 1:# tear coming from top
                      # 1-left  2-down   3-right
                     ######edge cases############ 
                     if x==width-1
@@ -154,7 +154,7 @@ def tear(im, pix):
                         y += 1
                         x += 1
 
-                elif start == 2:
+                elif start == 2: # tear coming from right
                     ######edge cases############ 
                     if y==height-1
                         y -= 1
@@ -173,7 +173,7 @@ def tear(im, pix):
                         y += 1
                         x -= 1
 
-                elif start == 3:
+                elif start == 3: # tear coming from bottom
                       # 1-left  2-up   3-right
                     ######edge cases############ 
                     if x==width-1
@@ -192,7 +192,7 @@ def tear(im, pix):
                         y -= 1
                         x += 1
 
-                elif start == 4:
+                elif start == 4: # tear coming from left
                      # 1-up   2-right   3-down
                         
                      ######edge cases############ 
