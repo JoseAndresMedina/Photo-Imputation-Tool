@@ -3,11 +3,12 @@ from random import randint
 import numpy as np
 import sys
 import pandas as pd
+import math
 ################
 tearColor = (255, 255, 255, 0)
 radius = 3
 maxTearLength = 250
-percentage = .1
+percentage = .01
 ################
 
 
@@ -15,9 +16,10 @@ def main():
     #load input
     infile = sys.argv[1]
     im = Image.open(infile).convert("RGBA")
-    pix = im.load()
+    pix = im.load() # Original Image
 
     #tear
+    tornImg = im.copy()
     tornImg = tear(im, pix) #may need to do a deep copy or something
     tornPix = tornImg.load()
 
@@ -43,6 +45,20 @@ def main():
             if tornPix[x,y] == tearColor:
                 newMissing += 1
     print(newMissing, " missing pixels after imputation")
+
+    im = Image.open(infile).convert("RGBA")
+    pix = im.load() # Original Image
+    dist = 0.0
+    for x in range(width):
+        for y in range(height):
+            t1 = pix[x,y]
+            t2 = tornPix[x,y]
+            if t1 != t2:
+                print(t1, t2)
+            dist += math.sqrt( (t1[0]-t2[0])**2 + (t1[1]-t2[1])**2 + (t1[2]-t2[2])**2 )
+
+    dist /= (totalMissing-newMissing)
+    print ("average euclidean distance error ", dist)
 
     outFile = infile.replace(".jpg", "Fixed.jpg")
     tornImg.save(outFile, "JPEG", quality=95, optimize=True, progressive=True)
