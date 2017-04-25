@@ -177,10 +177,10 @@ def tear(im, pix):
                       # 1-left  2-up   3-right
                     ######edge cases############ 
                     if x==width-1
-                        y += 1
+                        y -= 1
                         x -= 1
                     if x==0
-                        y += 1
+                        y -= 1
                         x += 1 
                     ################################## 
                     if nextMove == 1 or nextMove == 2:
@@ -198,10 +198,10 @@ def tear(im, pix):
                      ######edge cases############ 
                     if y==height-1
                         y -= 1
-                        x -= 1
+                        x += 1
                     if y==0
                         y += 1
-                        x -= 1 
+                        x += 1 
                     ##################################
                     if nextMove == 1 or nextMove == 2:
                         y -= 1
