@@ -7,7 +7,7 @@ import pandas as pd
 tearColor = (255, 255, 255, 0)
 radius = 3
 maxTearLength = 250
-percentage = .003
+percentage = .1
 ################
 
 
@@ -93,7 +93,7 @@ def tear(im, pix):
     length = 0
 
     while length < threshold:
-
+        print("----------NEW LINE STARTED----------")
         inter_length = 0
         start = randint(1,4) # 1-top   2-right   3-bottom   4-left
 
@@ -110,64 +110,69 @@ def tear(im, pix):
             x = 0
             y = randint(0, height-1)
 
+        print( start)
+
         # print("{0} \t {1}".format(start_x,start_y))
 
-        while ( inter_length != maxTearLength ) and ( length < threshold ):
+        while ( inter_length < maxTearLength ) and ( length < threshold ):
             # print(length)
             pix[x,y] = tearColor
-
             while True:
-                nextMove = randint(1, 5)
+                nextMove = randint(1, 3)
+                next_y = y
+                next_x = x
 
                 if start == 1:
                      # 1-left  2-down   3-right
-                    if nextMove == 1 or nextMove == 2:
-                        y += 1
-                        x -= 1
+                    if nextMove == 1:
+                        next_y += 1
+                        next_x -= 1
+                    elif nextMove == 2:
+                        next_y += 1
                     elif nextMove == 3:
-                        y += 1
-                    elif nextMove == 4 or nextMove == 5:
-                        y += 1
-                        x += 1
+                        next_x += 1
+                        next_y += 1
 
                 elif start == 2:
                      # 1-up  2-left   3-down
-                    if nextMove == 1 or nextMove == 2:
-                        y -= 1
-                        x -= 1
+                    if nextMove == 1:
+                        next_y -= 1
+                        next_x -= 1
+                    elif nextMove == 2:
+                        next_x -= 1
                     elif nextMove == 3:
-                        x -= 1
-                    elif nextMove == 4 or nextMove == 5:
-                        y += 1
-                        x -= 1
+                        next_y += 1
+                        next_x -= 1
 
                 elif start == 3:
                       # 1-left  2-up   3-right
-                    if nextMove == 1 or nextMove == 2:
-                        y -= 1
-                        x -= 1
+                    if nextMove == 1:
+                        next_y -= 1
+                        next_x -= 1
+                    elif nextMove == 2:
+                        next_y -= 1
                     elif nextMove == 3:
-                        y -= 1
-                    elif nextMove == 4 or nextMove == 5:
-                        y -= 1
-                        x += 1
+                        next_y -= 1
+                        next_x += 1
 
                 elif start == 4:
                      # 1-up   2-right   3-down
-                    if nextMove == 1 or nextMove == 2:
-                        y -= 1
-                        x += 1
+                    if nextMove == 1:
+                        next_y -= 1
+                        next_x += 1
+                    elif nextMove == 2:
+                        next_x += 1
                     elif nextMove == 3:
-                        x += 1
-                    elif nextMove == 4 or nextMove == 5 :
-                        y += 1
-                        x += 1
+                        next_y += 1
+                        next_x += 1
 
-                if (0 <= x < width) and (0 <= y < height):
+                if (0 <= next_x < width) and (0 <= next_y < height):
+                    x = next_x;
+                    y = next_y
+                    inter_length += 1;
                     break
 
             length += 1
-            inter_length += 1
 
     return im
 
