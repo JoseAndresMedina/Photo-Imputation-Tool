@@ -137,6 +137,14 @@ def tear(im, pix):
 
                 if start == 1:
                      # 1-left  2-down   3-right
+                    ######edge cases############ 
+                    if x==width-1
+                        y += 1
+                        x -= 1
+                    if x==0
+                        y += 1
+                        x += 1 
+                    ##################################    
                     if nextMove == 1 or nextMove == 2:
                         y += 1
                         x -= 1
@@ -147,6 +155,14 @@ def tear(im, pix):
                         x += 1
 
                 elif start == 2:
+                    ######edge cases############ 
+                    if y==height-1
+                        y -= 1
+                        x -= 1
+                    if y==0
+                        y += 1
+                        x -= 1 
+                    ##################################  
                      # 1-up  2-left   3-down
                     if nextMove == 1 or nextMove == 2:
                         y -= 1
@@ -159,6 +175,14 @@ def tear(im, pix):
 
                 elif start == 3:
                       # 1-left  2-up   3-right
+                    ######edge cases############ 
+                    if x==width-1
+                        y += 1
+                        x -= 1
+                    if x==0
+                        y += 1
+                        x += 1 
+                    ################################## 
                     if nextMove == 1 or nextMove == 2:
                         y -= 1
                         x -= 1
@@ -170,6 +194,15 @@ def tear(im, pix):
 
                 elif start == 4:
                      # 1-up   2-right   3-down
+                        
+                     ######edge cases############ 
+                    if y==height-1
+                        y -= 1
+                        x -= 1
+                    if y==0
+                        y += 1
+                        x -= 1 
+                    ##################################
                     if nextMove == 1 or nextMove == 2:
                         y -= 1
                         x += 1
