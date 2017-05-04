@@ -1,3 +1,15 @@
+"""
+Execution: python master.py <image.jpg> <degredation>
+    Image must be jpg
+    Degredation values higher than 1 lead to significant runtime, particularly on large images
+Dependencies:
+    PIL
+    numpy
+    pandas
+Note:
+    Currently setup to run ten times for radius [1,9]. This can be modified
+    Prints output to terminal. Pipe to text if you want a text file.
+"""
 from PIL import Image
 from random import randint
 import numpy as np
@@ -6,65 +18,64 @@ import pandas as pd
 import math
 ################
 tearColor = (255, 255, 255, 0)
-radius = 3
+#radius = 3
 maxTearLength = 250
-percentage = .01
+#percentage = float()
 ################
 
 
 def main():
     #load input
-    infile = sys.argv[1]
-    im = Image.open(infile).convert("RGBA")
-    pix = im.load() # Original Image
+    for rad in range(1,10):
+        print "radius = ", rad
+        for i in range(10):
+            infile = sys.argv[1]
+            percentage = float(sys.argv[2])
+            im = Image.open(infile).convert("RGBA")
+            pix = im.load() # Original Image
 
-    #tear
-    tornImg = im.copy()
-    tornImg = tear(im, pix) #may need to do a deep copy or something
-    tornPix = tornImg.load()
+            #tear
+            tornImg = im.copy()
+            tornImg = tear(im, pix,percentage) #may need to do a deep copy or something
+            tornPix = tornImg.load()
 
-    outFile = infile.replace(".jpg", "Torn.jpg")
-    tornImg.save(outFile, "JPEG", quality=95, optimize=True, progressive=True)
+            outFile = infile.replace(".jpg", "Torn.jpg")
+            tornImg.save(outFile, "JPEG", quality=95, optimize=True, progressive=True)
 
-    width, height = im.size
-    totalMissing = 0
-    for x in range(width):
-        for y in range(height):
-            if tornPix[x,y] == tearColor:
-                totalMissing += 1
-    print (totalMissing, " missing pixels")
+            width, height = im.size
+            totalMissing = 0
+            for x in range(width):
+                for y in range(height):
+                    if tornPix[x,y] == tearColor:
+                        totalMissing += 1
 
-    for x in range(width):
-        for y in range(height):
-            if tornPix[x,y] == tearColor:
-                tornPix[x,y] = impute(tornImg, tornPix, x, y)
+            for x in range(width):
+                for y in range(height):
+                    if tornPix[x,y] == tearColor:
+                        tornPix[x,y] = impute(tornImg, tornPix,rad, x, y)
 
-    newMissing = 0
-    for x in range(width):
-        for y in range(height):
-            if tornPix[x,y] == tearColor:
-                newMissing += 1
-    print(newMissing, " missing pixels after imputation")
+            newMissing = 0
+            for x in range(width):
+                for y in range(height):
+                    if tornPix[x,y] == tearColor:
+                        newMissing += 1
 
-    im = Image.open(infile).convert("RGBA")
-    pix = im.load() # Original Image
-    dist = 0.0
-    for x in range(width):
-        for y in range(height):
-            t1 = pix[x,y]
-            t2 = tornPix[x,y]
-            if t1 != t2:
-                print(t1, t2)
-            dist += math.sqrt( (t1[0]-t2[0])**2 + (t1[1]-t2[1])**2 + (t1[2]-t2[2])**2 )
+            im = Image.open(infile).convert("RGBA")
+            pix = im.load() # Original Image
+            dist = 0.0
+            for x in range(width):
+                for y in range(height):
+                    t1 = pix[x,y]
+                    t2 = tornPix[x,y]
+                    dist += math.sqrt( (t1[0]-t2[0])**2 + (t1[1]-t2[1])**2 + (t1[2]-t2[2])**2 )
 
-    dist /= (totalMissing-newMissing)
-    print ("average euclidean distance error ", dist)
-
-    outFile = infile.replace(".jpg", "Fixed.jpg")
-    tornImg.save(outFile, "JPEG", quality=95, optimize=True, progressive=True)
+            dist /= (totalMissing-newMissing)
+            print round(dist,3)
+            outFile = infile.replace(".jpg", "Fixed.jpg")
+            tornImg.save(outFile, "JPEG", quality=95, optimize=True, progressive=True)
 
 
-def impute(img, pix, x, y):
+def impute(img, pix, radius, x, y):
     width, height = img.size
     neighbors = list()
     #gather neighbor pixel values
@@ -80,36 +91,33 @@ def impute(img, pix, x, y):
     listNeighbors = [list(x) for x in neighbors]
     rgbTable = pd.DataFrame(listNeighbors)
     rgbTable.columns = ["r", "g", "b", "a"]
-    #print rgbTable
+
     modes = rgbTable.mode()
     means = rgbTable.mean()
-    #print modes
+    if modes.empty:
+        return tearColor
     values = modes.iloc[0].values
-    #print values
     pixelList = list()
     i = 0
     for v in values:
         if np.isnan(v):
-            #print "no mode, will use mean at pixel ", x, " ", y
-            #index = values.index(v)
             mean = int(means.iloc[i])
             pixelList.append(mean)
         else:
             pixelList.append(int(v))
         i += 1
     newPixel = tuple(pixelList)
-    # print(newPixel)
     return newPixel
 
 
-def tear(im, pix):
+def tear(im, pix,percentage):
     width, height = im.size
 
     threshold = percentage * width * height
     length = 0
 
     while length < threshold:
-        print("----------NEW LINE STARTED----------")
+
         inter_length = 0
         start = randint(1,4) # 1-top   2-right   3-bottom   4-left
 
@@ -126,69 +134,107 @@ def tear(im, pix):
             x = 0
             y = randint(0, height-1)
 
-        print( start)
-
         # print("{0} \t {1}".format(start_x,start_y))
 
-        while ( inter_length < maxTearLength ) and ( length < threshold ):
+        while ( inter_length != maxTearLength ) and ( length < threshold ):
             # print(length)
             pix[x,y] = tearColor
+
             while True:
-                nextMove = randint(1, 3)
-                next_y = y
-                next_x = x
+                nextMove = randint(1, 5)
 
-                if start == 1:
+                if start == 1:# tear coming from top
                      # 1-left  2-down   3-right
-                    if nextMove == 1:
-                        next_y += 1
-                        next_x -= 1
-                    elif nextMove == 2:
-                        next_y += 1
-                    elif nextMove == 3:
-                        next_x += 1
-                        next_y += 1
+                    ######edge cases############
+                    if y == height-1:
+                        break
+                    if x >= width-1:
+                        y += 1
+                        x -= 1
+                    elif x <= 0:
+                        y += 1
+                        x += 1
+                    ##################################
 
-                elif start == 2:
+                    elif nextMove == 1 or nextMove == 2:
+                        y += 1
+                        x -= 1
+                    elif nextMove == 3:
+                        y += 1
+                    elif nextMove == 4 or nextMove == 5:
+                        y += 1
+                        x += 1
+
+                elif start == 2: # tear coming from right
+                    ######edge cases############
+                    if x == 0:
+                        break
+                    if y >= height - 1:
+                        y -= 1
+                        x -= 1
+                    elif y <= 0:
+                        y += 1
+                        x -= 1
+                    ##################################
+
                      # 1-up  2-left   3-down
-                    if nextMove == 1:
-                        next_y -= 1
-                        next_x -= 1
-                    elif nextMove == 2:
-                        next_x -= 1
+                    elif nextMove == 1 or nextMove == 2:
+                        y -= 1
+                        x -= 1
                     elif nextMove == 3:
-                        next_y += 1
-                        next_x -= 1
+                        x -= 1
+                    elif nextMove == 4 or nextMove == 5:
+                        y += 1
+                        x -= 1
 
-                elif start == 3:
+                elif start == 3: # tear coming from bottom
                       # 1-left  2-up   3-right
-                    if nextMove == 1:
-                        next_y -= 1
-                        next_x -= 1
-                    elif nextMove == 2:
-                        next_y -= 1
+                    ######edge cases############
+                    if y == 0:
+                        break
+                    if x >= width-1:
+                        y -= 1
+                        x -= 1
+                    elif x <= 0:
+                        y -= 1
+                        x += 1
+                    ##################################
+                    elif nextMove == 1 or nextMove == 2:
+                        y -= 1
+                        x -= 1
                     elif nextMove == 3:
-                        next_y -= 1
-                        next_x += 1
+                        y -= 1
+                    elif nextMove == 4 or nextMove == 5:
+                        y -= 1
+                        x += 1
 
-                elif start == 4:
+                elif start == 4: # tear coming from left
                      # 1-up   2-right   3-down
-                    if nextMove == 1:
-                        next_y -= 1
-                        next_x += 1
-                    elif nextMove == 2:
-                        next_x += 1
-                    elif nextMove == 3:
-                        next_y += 1
-                        next_x += 1
 
-                if (0 <= next_x < width) and (0 <= next_y < height):
-                    x = next_x;
-                    y = next_y
-                    inter_length += 1;
+                     ######edge cases############
+                    if x == width-1:
+                        break
+                    if y >= height-1:
+                        y -= 1
+                        x += 1
+                    elif y <= 0:
+                        y += 1
+                        x += 1
+                    ##################################
+                    elif nextMove == 1 or nextMove == 2:
+                        y -= 1
+                        x += 1
+                    elif nextMove == 3:
+                        x += 1
+                    elif nextMove == 4 or nextMove == 5 :
+                        y += 1
+                        x += 1
+                #print x, y, width, height
+                if (0 <= x < width) and (0 <= y < height):
                     break
 
             length += 1
+            inter_length += 1
 
     return im
 
